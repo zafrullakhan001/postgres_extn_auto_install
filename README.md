@@ -10,6 +10,9 @@ postgres/
 │   ├── install_pg_stat_statements.ps1
 │   ├── install_postgis.ps1
 │   ├── install_postgres_fdw.ps1
+│   ├── install_file_fdw.ps1
+│   ├── install_mysql_fdw.ps1
+│   ├── install_oracle_fdw.ps1
 │   ├── install_intarray.ps1
 │   ├── install_timescaledb.ps1
 │   └── install_zombodb.ps1
@@ -18,6 +21,9 @@ postgres/
     ├── install_pg_stat_statements.sh
     ├── install_postgis.sh
     ├── install_postgres_fdw.sh
+    ├── install_file_fdw.sh
+    ├── install_mysql_fdw.sh
+    ├── install_oracle_fdw.sh
     ├── install_intarray.sh
     ├── install_timescaledb.sh
     └── install_zombodb.sh
@@ -68,12 +74,16 @@ These extensions are included with PostgreSQL and can be installed directly:
 
 1. **pg_stat_statements** - Query performance tracking
 2. **postgres_fdw** - Foreign data wrapper for remote PostgreSQL
-3. **intarray** - Integer array functions
-4. **timescaledb** - Time-series database (may be pre-installed)
+3. **file_fdw** - Foreign data wrapper for reading files (CSV, text)
+4. **intarray** - Integer array functions
+5. **timescaledb** - Time-series database (may be pre-installed)
 
 ### 📦 Extensions Requiring Binary Installation
 
 These extensions need additional binaries to be installed first:
+
+6. **mysql_fdw** - Foreign data wrapper for MySQL/MariaDB
+7. **oracle_fdw** - Foreign data wrapper for Oracle databases
 
 #### PostGIS - Geographic Objects Support
 
