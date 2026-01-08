@@ -15,19 +15,77 @@ postgres/
 │   ├── install_oracle_fdw.ps1
 │   ├── install_intarray.ps1
 │   ├── install_timescaledb.ps1
-│   └── install_zombodb.ps1
+│   ├── install_zombodb.ps1
+│   ├── backup_full.ps1           # Full database backups
+│   ├── backup_incremental.ps1    # Incremental backups (WAL)
+│   ├── restore_full.ps1          # Full database restore
+│   └── restore_pitr.ps1          # Point-in-Time Recovery
 │
-└── linux/             # Linux Bash scripts (.sh)
-    ├── install_pg_stat_statements.sh
-    ├── install_postgis.sh
-    ├── install_postgres_fdw.sh
-    ├── install_file_fdw.sh
-    ├── install_mysql_fdw.sh
-    ├── install_oracle_fdw.sh
-    ├── install_intarray.sh
-    ├── install_timescaledb.sh
-    └── install_zombodb.sh
+├── linux/             # Linux Bash scripts (.sh)
+│   ├── install_pg_stat_statements.sh
+│   ├── install_postgis.sh
+│   ├── install_postgres_fdw.sh
+│   ├── install_file_fdw.sh
+│   ├── install_mysql_fdw.sh
+│   ├── install_oracle_fdw.sh
+│   ├── install_intarray.sh
+│   ├── install_timescaledb.sh
+│   ├── install_zombodb.sh
+│   ├── backup_full.sh            # Full database backups
+│   ├── backup_incremental.sh     # Incremental backups (WAL)
+│   ├── restore_full.sh           # Full database restore
+│   └── restore_pitr.sh           # Point-in-Time Recovery
+│
+├── backups/           # Backup storage directory
+├── BACKUP_RESTORE_GUIDE.md       # Comprehensive backup documentation
+├── BACKUP_QUICK_REFERENCE.md     # Quick reference for backup commands
+└── UPGRADE_TO_PG18.md            # PostgreSQL upgrade guide
 ```
+
+## 🔄 Backup & Restore
+
+This repository includes comprehensive backup and restore scripts for PostgreSQL databases running in Docker containers.
+
+### Quick Start
+
+**Create a full backup:**
+```powershell
+# Windows
+.\windows\backup_full.ps1 -BackupType logical
+
+# Linux
+./linux/backup_full.sh logical
+```
+
+**Restore from backup:**
+```powershell
+# Windows
+.\windows\restore_full.ps1 -BackupFile ".\backups\full_backup_YYYYMMDD_HHMMSS.sql"
+
+# Linux
+./linux/restore_full.sh ./backups/full_backup_YYYYMMDD_HHMMSS.sql logical
+```
+
+### Backup Types
+
+1. **Full Logical Backup** - Complete database dump (recommended for most users)
+2. **Full Physical Backup** - Binary backup for large databases
+3. **Incremental Backup** - WAL-based continuous backup
+4. **Point-in-Time Recovery (PITR)** - Restore to any specific moment
+
+### Documentation
+
+- **[Backup & Restore Guide](BACKUP_RESTORE_GUIDE.md)** - Complete documentation with best practices
+- **[Quick Reference](BACKUP_QUICK_REFERENCE.md)** - Command cheat sheet
+- **[Upgrade Guide](UPGRADE_TO_PG18.md)** - PostgreSQL version upgrade instructions
+
+### Recommended Backup Schedule
+
+| Type | Frequency | Script |
+|------|-----------|--------|
+| Full Logical | Daily | `backup_full.ps1 -BackupType logical` |
+| Incremental | Hourly | `backup_incremental.ps1 -Action backup` |
+| Physical | Weekly | `backup_full.ps1 -BackupType physical` |
 
 ## How to Use
 
