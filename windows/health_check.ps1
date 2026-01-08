@@ -71,15 +71,15 @@ function Add-Issue {
     if ($Severity -eq "CRITICAL") {
         $script:issues += $issue
         $script:healthScore -= $ScoreImpact
-        Write-Report "❌ CRITICAL [$Category]: $Message"
+        Write-Report "X CRITICAL [$Category]: $Message"
     }
     elseif ($Severity -eq "WARNING") {
         $script:warnings += $issue
         $script:healthScore -= ($ScoreImpact / 2)
-        Write-Report "⚠  WARNING [$Category]: $Message"
+        Write-Report "!  WARNING [$Category]: $Message"
     }
     else {
-        Write-Report "ℹ  INFO [$Category]: $Message"
+        Write-Report "i  INFO [$Category]: $Message"
     }
 }
 
@@ -87,7 +87,8 @@ function Execute-Query {
     param([string]$Query)
     
     try {
-        $result = docker exec -i $ContainerName psql -U postgres -d $Database -t -A -c $Query 2>&1
+        # Passing query via stdin is more robust
+        $result = $Query | docker exec -i $ContainerName psql -U postgres -d $Database -t -A 2>&1
         if ($LASTEXITCODE -eq 0) {
             return $result.Trim()
         }
@@ -100,9 +101,9 @@ function Execute-Query {
     }
 }
 
-Write-Report "╔════════════════════════════════════════════════════════════════════════════╗"
-Write-Report "║          PostgreSQL Health Check Report                                   ║"
-Write-Report "╚════════════════════════════════════════════════════════════════════════════╝"
+Write-Report "================================================================================"
+Write-Report "          PostgreSQL Health Check Report                                       "
+Write-Report "================================================================================"
 Write-Report ""
 Write-Report "Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Report "Container: $ContainerName"
@@ -114,11 +115,11 @@ Write-Report "`n[1/15] Checking Docker Container Status..."
 try {
     $containerStatus = docker inspect -f '{{.State.Status}}' $ContainerName 2>&1
     if ($containerStatus -eq "running") {
-        Write-Report "✓ Container is running"
+        Write-Report "+ Container is running"
     }
     else {
         Add-Issue "CRITICAL" "Container" "Container is not running (Status: $containerStatus)" 20
-        Write-Report "`n❌ Health check cannot continue - container is not running"
+        Write-Report "`nX Health check cannot continue - container is not running"
         exit 1
     }
 }
@@ -131,7 +132,7 @@ catch {
 Write-Report "`n[2/15] Checking PostgreSQL Connectivity..."
 $version = Execute-Query "SELECT version();"
 if ($version) {
-    Write-Report "✓ PostgreSQL is accessible"
+    Write-Report "+ PostgreSQL is accessible"
     Write-Report "  Version: $($version.Split(',')[0])"
 }
 else {
@@ -143,7 +144,7 @@ else {
 Write-Report "`n[3/15] Checking Database Existence..."
 $dbExists = Execute-Query "SELECT 1 FROM pg_database WHERE datname='$Database';"
 if ($dbExists -eq "1") {
-    Write-Report "✓ Database '$Database' exists"
+    Write-Report "+ Database '$Database' exists"
 }
 else {
     Add-Issue "CRITICAL" "Database" "Database '$Database' does not exist" 15
@@ -151,19 +152,15 @@ else {
 
 # 4. Check disk space
 Write-Report "`n[4/15] Checking Disk Space..."
-$diskUsage = Execute-Query @"
-SELECT 
-    pg_size_pretty(pg_database_size('$Database')) as db_size,
-    pg_database_size('$Database') as db_size_bytes
-FROM pg_database WHERE datname='$Database';
-"@
+$diskUsageQuery = "SELECT pg_size_pretty(pg_database_size('$Database')) || '|' || pg_database_size('$Database') FROM pg_database WHERE datname='$Database';"
+$diskUsage = Execute-Query $diskUsageQuery
 
 if ($diskUsage) {
     $parts = $diskUsage.Split('|')
     if ($parts.Count -ge 2) {
         $sizeBytes = [long]$parts[1]
         $sizeGB = [math]::Round($sizeBytes / 1GB, 2)
-        Write-Report "✓ Database size: $($parts[0]) ($sizeGB GB)"
+        Write-Report "+ Database size: $($parts[0]) ($sizeGB GB)"
         
         # Check if database is growing too large (>80% of typical limit)
         if ($sizeGB -gt 100) {
@@ -174,12 +171,8 @@ if ($diskUsage) {
 
 # 5. Check connection limits
 Write-Report "`n[5/15] Checking Connection Limits..."
-$connStats = Execute-Query @"
-SELECT 
-    count(*) as current,
-    (SELECT setting::int FROM pg_settings WHERE name='max_connections') as max_conn
-FROM pg_stat_activity;
-"@
+$connStatsQuery = "SELECT count(*) || '|' || (SELECT setting::int FROM pg_settings WHERE name='max_connections') FROM pg_stat_activity;"
+$connStats = Execute-Query $connStatsQuery
 
 if ($connStats) {
     $parts = $connStats.Split('|')
@@ -188,7 +181,7 @@ if ($connStats) {
         $max = [int]$parts[1]
         $usage = [math]::Round(($current / $max) * 100, 1)
         
-        Write-Report "✓ Connections: $current / $max ($usage%)"
+        Write-Report "+ Connections: $current / $max ($usage%)"
         
         if ($usage -gt 80) {
             Add-Issue "CRITICAL" "Connections" "Connection usage is critical: $usage%" 15
@@ -201,31 +194,24 @@ if ($connStats) {
 
 # 6. Check for idle in transaction connections
 Write-Report "`n[6/15] Checking Idle Transactions..."
-$idleInTrans = Execute-Query @"
-SELECT count(*) 
-FROM pg_stat_activity 
-WHERE state = 'idle in transaction' 
-    AND now() - state_change > interval '5 minutes';
-"@
+$idleInTransQuery = "SELECT count(*) FROM pg_stat_activity WHERE state = 'idle in transaction' AND now() - state_change > interval '5 minutes';"
+$idleInTrans = Execute-Query $idleInTransQuery
 
 if ($idleInTrans -and [int]$idleInTrans -gt 0) {
     Add-Issue "WARNING" "Connections" "Found $idleInTrans long-running idle transactions (>5 min)" 8
 }
 else {
-    Write-Report "✓ No long-running idle transactions"
+    Write-Report "+ No long-running idle transactions"
 }
 
 # 7. Check cache hit ratio
 Write-Report "`n[7/15] Checking Cache Hit Ratio..."
-$cacheHit = Execute-Query @"
-SELECT round((sum(heap_blks_hit) * 100.0 / 
-    NULLIF(sum(heap_blks_hit + heap_blks_read), 0))::numeric, 2)
-FROM pg_statio_user_tables;
-"@
+$cacheHitQuery = "SELECT round((sum(heap_blks_hit) * 100.0 / NULLIF(sum(heap_blks_hit + heap_blks_read), 0))::numeric, 2) FROM pg_statio_user_tables;"
+$cacheHit = Execute-Query $cacheHitQuery
 
 if ($cacheHit) {
     $ratio = [double]$cacheHit
-    Write-Report "✓ Cache hit ratio: $ratio%"
+    Write-Report "+ Cache hit ratio: $ratio%"
     
     if ($ratio -lt 90) {
         Add-Issue "CRITICAL" "Performance" "Cache hit ratio is too low: $ratio% (target: >99%)" 15
@@ -237,62 +223,43 @@ if ($cacheHit) {
 
 # 8. Check for table bloat
 Write-Report "`n[8/15] Checking Table Bloat..."
-$bloatedTables = Execute-Query @"
-SELECT count(*) 
-FROM pg_stat_user_tables 
-WHERE n_dead_tup > 10000 
-    AND n_dead_tup > n_live_tup * 0.2;
-"@
+$bloatedTablesQuery = "SELECT count(*) FROM pg_stat_user_tables WHERE n_dead_tup > 10000 AND n_dead_tup > n_live_tup * 0.2;"
+$bloatedTables = Execute-Query $bloatedTablesQuery
 
 if ($bloatedTables -and [int]$bloatedTables -gt 0) {
     Add-Issue "WARNING" "Maintenance" "Found $bloatedTables tables with significant bloat (>20% dead tuples)" 10
     
-    $bloatDetails = Execute-Query @"
-SELECT tablename, n_dead_tup, n_live_tup,
-    round((n_dead_tup * 100.0 / NULLIF(n_live_tup + n_dead_tup, 0))::numeric, 1) as dead_pct
-FROM pg_stat_user_tables 
-WHERE n_dead_tup > 10000 
-    AND n_dead_tup > n_live_tup * 0.2
-ORDER BY n_dead_tup DESC LIMIT 5;
-"@
+    $bloatDetailsQuery = "SELECT tablename || ' (' || n_dead_tup || ' dead, ' || n_live_tup || ' live)' FROM pg_stat_user_tables WHERE n_dead_tup > 10000 AND n_dead_tup > n_live_tup * 0.2 ORDER BY n_dead_tup DESC LIMIT 5;"
+    $bloatDetails = Execute-Query $bloatDetailsQuery
     Write-Report "  Top bloated tables:"
     Write-Report "  $bloatDetails"
 }
 else {
-    Write-Report "✓ No significant table bloat detected"
+    Write-Report "+ No significant table bloat detected"
 }
 
 # 9. Check for unused indexes
 Write-Report "`n[9/15] Checking Unused Indexes..."
-$unusedIndexes = Execute-Query @"
-SELECT count(*) 
-FROM pg_stat_user_indexes 
-WHERE idx_scan = 0 
-    AND pg_relation_size(indexrelid) > 1048576;
-"@
+$unusedIndexesQuery = "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND pg_relation_size(indexrelid) > 1048576;"
+$unusedIndexes = Execute-Query $unusedIndexesQuery
 
 if ($unusedIndexes -and [int]$unusedIndexes -gt 0) {
     Add-Issue "WARNING" "Performance" "Found $unusedIndexes unused indexes (>1MB, never scanned)" 5
 }
 else {
-    Write-Report "✓ No large unused indexes found"
+    Write-Report "+ No large unused indexes found"
 }
 
 # 10. Check for missing indexes (high sequential scans)
 Write-Report "`n[10/15] Checking for Missing Indexes..."
-$highSeqScans = Execute-Query @"
-SELECT count(*) 
-FROM pg_stat_user_tables 
-WHERE seq_scan > 1000 
-    AND seq_scan > idx_scan 
-    AND pg_total_relation_size(schemaname||'.'||tablename) > 10485760;
-"@
+$highSeqScansQuery = "SELECT count(*) FROM pg_stat_user_tables WHERE seq_scan > 1000 AND seq_scan > idx_scan AND pg_total_relation_size(schemaname||'.'||tablename) > 10485760;"
+$highSeqScans = Execute-Query $highSeqScansQuery
 
 if ($highSeqScans -and [int]$highSeqScans -gt 0) {
     Add-Issue "WARNING" "Performance" "Found $highSeqScans large tables with high sequential scans" 8
 }
 else {
-    Write-Report "✓ No tables with excessive sequential scans"
+    Write-Report "+ No tables with excessive sequential scans"
 }
 
 # 11. Check replication status
@@ -300,13 +267,11 @@ Write-Report "`n[11/15] Checking Replication Status..."
 $replicas = Execute-Query "SELECT count(*) FROM pg_stat_replication;"
 
 if ($replicas -and [int]$replicas -gt 0) {
-    Write-Report "✓ Replication active: $replicas replica(s)"
+    Write-Report "+ Replication active: $replicas replica(s)"
     
     # Check replication lag
-    $repLag = Execute-Query @"
-SELECT max(pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn)) as max_lag_bytes
-FROM pg_stat_replication;
-"@
+    $repLagQuery = "SELECT max(pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn)) FROM pg_stat_replication;"
+    $repLag = Execute-Query $repLagQuery
     
     if ($repLag -and [long]$repLag -gt 104857600) {
         # 100MB
@@ -315,22 +280,19 @@ FROM pg_stat_replication;
     }
 }
 else {
-    Write-Report "ℹ  No replication configured"
+    Write-Report "i  No replication configured"
 }
 
 # 12. Check for locks
 Write-Report "`n[12/15] Checking for Lock Contention..."
-$locks = Execute-Query @"
-SELECT count(*) 
-FROM pg_locks 
-WHERE NOT granted;
-"@
+$locksQuery = "SELECT count(*) FROM pg_locks WHERE NOT granted;"
+$locks = Execute-Query $locksQuery
 
 if ($locks -and [int]$locks -gt 0) {
     Add-Issue "WARNING" "Performance" "Found $locks blocked queries waiting for locks" 10
 }
 else {
-    Write-Report "✓ No lock contention detected"
+    Write-Report "+ No lock contention detected"
 }
 
 # 13. Check autovacuum status
@@ -338,15 +300,11 @@ Write-Report "`n[13/15] Checking Autovacuum Configuration..."
 $autovacuum = Execute-Query "SELECT setting FROM pg_settings WHERE name='autovacuum';"
 
 if ($autovacuum -eq "on") {
-    Write-Report "✓ Autovacuum is enabled"
+    Write-Report "+ Autovacuum is enabled"
     
     # Check when tables were last vacuumed
-    $oldVacuum = Execute-Query @"
-SELECT count(*) 
-FROM pg_stat_user_tables 
-WHERE last_autovacuum < now() - interval '7 days' 
-    OR last_autovacuum IS NULL;
-"@
+    $oldVacuumQuery = "SELECT count(*) FROM pg_stat_user_tables WHERE last_autovacuum < now() - interval '7 days' OR last_autovacuum IS NULL;"
+    $oldVacuum = Execute-Query $oldVacuumQuery
     
     if ($oldVacuum -and [int]$oldVacuum -gt 0) {
         Add-Issue "WARNING" "Maintenance" "$oldVacuum tables haven't been vacuumed in 7+ days" 8
@@ -358,49 +316,31 @@ else {
 
 # 14. Check for long-running queries
 Write-Report "`n[14/15] Checking for Long-Running Queries..."
-$longQueries = Execute-Query @"
-SELECT count(*) 
-FROM pg_stat_activity 
-WHERE state != 'idle' 
-    AND query_start < now() - interval '10 minutes' 
-    AND pid <> pg_backend_pid();
-"@
+$longQueriesQuery = "SELECT count(*) FROM pg_stat_activity WHERE state != 'idle' AND query_start < now() - interval '10 minutes' AND pid <> pg_backend_pid();"
+$longQueries = Execute-Query $longQueriesQuery
 
 if ($longQueries -and [int]$longQueries -gt 0) {
     Add-Issue "WARNING" "Performance" "Found $longQueries queries running >10 minutes" 10
     
-    $queryDetails = Execute-Query @"
-SELECT pid, usename, 
-    extract(epoch from (now() - query_start))::int as seconds,
-    left(query, 80) as query
-FROM pg_stat_activity 
-WHERE state != 'idle' 
-    AND query_start < now() - interval '10 minutes' 
-    AND pid <> pg_backend_pid()
-ORDER BY query_start LIMIT 3;
-"@
+    $queryDetailsQuery = "SELECT pid || ' | ' || usename || ' | ' || extract(epoch from (now() - query_start))::int || 's' FROM pg_stat_activity WHERE state != 'idle' AND query_start < now() - interval '10 minutes' AND pid <> pg_backend_pid() ORDER BY query_start LIMIT 3;"
+    $queryDetails = Execute-Query $queryDetailsQuery
     Write-Report "  Sample queries:"
     Write-Report "  $queryDetails"
 }
 else {
-    Write-Report "✓ No long-running queries detected"
+    Write-Report "+ No long-running queries detected"
 }
 
 # 15. Check WAL file accumulation
 Write-Report "`n[15/15] Checking WAL File Status..."
-$walFiles = Execute-Query @"
-SELECT count(*) 
-FROM pg_ls_waldir() 
-WHERE modification > now() - interval '1 hour';
-"@
+$walFilesQuery = "SELECT count(*) FROM pg_ls_waldir() WHERE modification > now() - interval '1 hour';"
+$walFiles = Execute-Query $walFilesQuery
 
 if ($walFiles) {
-    Write-Report "✓ WAL files generated in last hour: $walFiles"
+    Write-Report "+ WAL files generated in last hour: $walFiles"
     
-    $totalWalSize = Execute-Query @"
-SELECT pg_size_pretty(sum(size)) 
-FROM pg_ls_waldir();
-"@
+    $totalWalSizeQuery = "SELECT pg_size_pretty(sum(size)) FROM pg_ls_waldir();"
+    $totalWalSize = Execute-Query $totalWalSizeQuery
     
     if ($totalWalSize) {
         Write-Report "  Total WAL directory size: $totalWalSize"
@@ -417,33 +357,30 @@ Write-Report ("=" * 80)
 Write-Report ""
 
 # Display health score with visual indicator
-$scoreBar = "█" * [math]::Floor($healthScore / 5)
-$scoreColor = if ($healthScore -ge 90) { "Green" } 
-elseif ($healthScore -ge 70) { "Yellow" } 
-else { "Red" }
+$scoreBar = "#" * [math]::Floor($healthScore / 5)
 
 Write-Report "Overall Health Score: $healthScore / 100"
 Write-Report "[$scoreBar]"
 Write-Report ""
 
 if ($issues.Count -gt 0) {
-    Write-Report "❌ CRITICAL ISSUES: $($issues.Count)"
+    Write-Report "X CRITICAL ISSUES: $($issues.Count)"
     foreach ($issue in $issues) {
-        Write-Report "   • [$($issue.Category)] $($issue.Message)"
+        Write-Report "   - [$($issue.Category)] $($issue.Message)"
     }
     Write-Report ""
 }
 
 if ($warnings.Count -gt 0) {
-    Write-Report "⚠  WARNINGS: $($warnings.Count)"
+    Write-Report "!  WARNINGS: $($warnings.Count)"
     foreach ($warning in $warnings) {
-        Write-Report "   • [$($warning.Category)] $($warning.Message)"
+        Write-Report "   - [$($warning.Category)] $($warning.Message)"
     }
     Write-Report ""
 }
 
 if ($issues.Count -eq 0 -and $warnings.Count -eq 0) {
-    Write-Report "✅ All health checks passed!"
+    Write-Report "+ All health checks passed!"
 }
 
 Write-Report ""
@@ -451,18 +388,18 @@ Write-Report "RECOMMENDATIONS:"
 Write-Report ("=" * 80)
 
 if ($healthScore -lt 70) {
-    Write-Report "🔴 URGENT: Immediate action required!"
+    Write-Report "RED URGENT: Immediate action required!"
     Write-Report "   1. Review and address all CRITICAL issues immediately"
     Write-Report "   2. Consider scheduling maintenance window"
     Write-Report "   3. Monitor system closely"
 }
 elseif ($healthScore -lt 90) {
-    Write-Report "🟡 ATTENTION: Some issues need attention"
+    Write-Report "YELLOW ATTENTION: Some issues need attention"
     Write-Report "   1. Address WARNING issues during next maintenance window"
     Write-Report "   2. Monitor trends to prevent degradation"
 }
 else {
-    Write-Report "🟢 HEALTHY: System is operating normally"
+    Write-Report "GREEN HEALTHY: System is operating normally"
     Write-Report "   1. Continue regular monitoring"
     Write-Report "   2. Maintain current maintenance schedule"
 }
@@ -473,9 +410,9 @@ Write-Report ("=" * 80)
 
 # Send alert if requested and there are critical issues
 if ($SendAlert -and $AlertEmail -and $issues.Count -gt 0) {
-    Write-Host "`n📧 Sending alert email to $AlertEmail..."
+    Write-Host "`nSending alert email to $AlertEmail..."
     # Note: Email sending would require additional configuration
-    Write-Host "⚠  Email alerting requires SMTP configuration (not implemented in this script)"
+    Write-Host "!  Email alerting requires SMTP configuration (not implemented in this script)"
 }
 
 # Exit with appropriate code

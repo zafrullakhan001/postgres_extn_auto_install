@@ -1,0 +1,101 @@
+================================================================================
+          PostgreSQL Storage Analysis Report                                    
+================================================================================
+
+Generated: 2026-01-08 13:18:43
+Container: PG-timescale
+Database: postgres
+================================================================================
+
+=== All Database Sizes ===
+================================================================================
+ Database | Size  | size_bytes | Connections  ----------+-------+------------+-------------  postgres | 78 MB |   81442495 |           2 (1 row) 
+
+=== Storage Breakdown by Object Type ===
+================================================================================
+ object_type  | count | total_size | size_bytes  --------------+-------+------------+------------  Tables       |   988 | 56 MB      |   59138048  Indexes      |  1958 | 31 MB      |   32178176  TOAST Tables |    49 | 1216 kB    |    1245184 (3 rows) 
+
+=== Top 30 Largest Tables ===
+================================================================================
+        Schema         |       Table        | Total Size | Table Size | Indexes Size | % of Total  -----------------------+--------------------+------------+------------+--------------+------------  _timescaledb_catalog  | chunk              | 584 kB     | 304 kB     | 280 kB       |       1.01  _timescaledb_catalog  | chunk_constraint   | 368 kB     | 192 kB     | 176 kB       |       0.64  _timescaledb_catalog  | dimension_slice    | 136 kB     | 32 kB      | 104 kB       |       0.24  _timescaledb_internal | _hyper_1_133_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_126_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_131_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_124_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_118_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_123_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_122_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_125_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_103_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_130_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_102_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_112_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_115_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_111_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_110_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_135_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_117_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_114_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_121_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_137_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_107_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_100_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_101_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_127_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_129_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_106_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12  _timescaledb_internal | _hyper_1_138_chunk | 72 kB      | 16 kB      | 56 kB        |       0.12 (30 rows) 
+
+=== Table Size with Row Statistics ===
+================================================================================
+        Schema         |        Table         | Total Size | Live Rows | Dead Rows | Bytes per Row | last_vacuum | last_autovacuum  -----------------------+----------------------+------------+-----------+-----------+---------------+-------------+-----------------  _timescaledb_internal | bgw_job_stat_history | 48 kB      |         1 |         0 |      49152.00 |             |  (1 row) 
+
+=== Top 30 Largest Indexes ===
+================================================================================
+        Schema         |         Table         |                             Index                             | Index Size | Index Scans | Tuples Read | Tuples Fetched | Usage Status  -----------------------+-----------------------+---------------------------------------------------------------+------------+-------------+-------------+----------------+--------------  _timescaledb_catalog  | chunk                 | chunk_schema_name_table_name_key                              | 120 kB     |        1218 |         954 |            954 | ACTIVE  _timescaledb_catalog  | chunk_constraint      | chunk_constraint_chunk_id_constraint_name_key                 | 96 kB      |         954 |        1908 |           1908 | ACTIVE  _timescaledb_catalog  | dimension_slice       | dimension_slice_dimension_id_range_start_range_end_key        | 48 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | chunk_constraint      | chunk_constraint_dimension_slice_id_idx                       | 48 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | chunk                 | chunk_hypertable_id_creation_time_idx                         | 48 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | chunk                 | chunk_pkey                                                    | 40 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | dimension_slice       | dimension_slice_pkey                                          | 32 kB      |        1908 |        1908 |           1908 | ACTIVE  _timescaledb_internal | _hyper_1_102_chunk    | _hyper_1_102_chunk_btc_prices_time_idx                        | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | _hyper_1_101_chunk    | _hyper_1_101_chunk_btc_prices_opening_price_time_idx          | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | _hyper_1_103_chunk    | _hyper_1_103_chunk_btc_prices_opening_price_time_idx          | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | dimension             | dimension_pkey                                                | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | hypertable            | hypertable_table_name_schema_name_key                         | 16 kB      |        1075 |           3 |              3 | ACTIVE  _timescaledb_internal | _hyper_1_101_chunk    | _hyper_1_101_chunk_btc_prices_time_idx                        | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | _hyper_1_102_chunk    | _hyper_1_102_chunk_btc_prices_opening_price_time_idx          | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | bgw_job_stat          | bgw_job_stat_pkey                                             | 16 kB      |           4 |           4 |              4 | LOW USAGE  _timescaledb_config   | bgw_job               | bgw_job_pkey                                                  | 16 kB      |           2 |           2 |              2 | LOW USAGE  _timescaledb_catalog  | hypertable            | hypertable_pkey                                               | 16 kB      |         954 |         954 |            954 | ACTIVE  _timescaledb_catalog  | hypertable            | hypertable_associated_schema_name_associated_table_prefix_key | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | compression_algorithm | compression_algorithm_pkey                                    | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_config   | bgw_job               | bgw_job_proc_hypertable_id_idx                                | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | _hyper_1_100_chunk    | _hyper_1_100_chunk_btc_prices_opening_price_time_idx          | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | bgw_job_stat_history  | bgw_job_stat_history_pkey                                     | 16 kB      |           4 |           4 |              3 | LOW USAGE  _timescaledb_internal | bgw_job_stat_history  | bgw_job_stat_history_job_id_idx                               | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | chunk                 | chunk_hypertable_id_idx                                       | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | metadata              | metadata_pkey                                                 | 16 kB      |           4 |           7 |              7 | LOW USAGE  _timescaledb_catalog  | chunk                 | chunk_compressed_chunk_id_idx                                 | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | chunk                 | chunk_osm_chunk_idx                                           | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_catalog  | dimension             | dimension_hypertable_id_column_name_key                       | 16 kB      |           3 |           6 |              6 | LOW USAGE  _timescaledb_internal | _hyper_1_100_chunk    | _hyper_1_100_chunk_btc_prices_time_idx                        | 16 kB      |           0 |           0 |              0 | UNUSED  _timescaledb_internal | _hyper_1_103_chunk    | _hyper_1_103_chunk_btc_prices_time_idx                        | 16 kB      |           0 |           0 |              0 | UNUSED (30 rows) 
+
+=== Unused Indexes (Candidates for Removal) ===
+================================================================================
+ Schema | Table | Index | Wasted Space | size_bytes | Definition  --------+-------+-------+--------------+------------+------------ (0 rows) 
+
+=== Duplicate Indexes (Potential Waste) ===
+================================================================================
+ Wasted Space | Duplicate Indexes | Table  --------------+-------------------+------- (0 rows) 
+
+=== TOAST Table Storage ===
+================================================================================
+        Schema         |              Table               | TOAST Size | toast_bytes | Main Table Size | TOAST %  -----------------------+----------------------------------+------------+-------------+-----------------+---------  _timescaledb_catalog  | continuous_aggs_bucket_function  | 8192 bytes |        8192 | 0 bytes         |  100.00  _timescaledb_catalog  | compression_algorithm            | 8192 bytes |        8192 | 8192 bytes      |   50.00  _timescaledb_catalog  | compression_settings             | 8192 bytes |        8192 | 0 bytes         |  100.00  _timescaledb_catalog  | continuous_agg_migrate_plan      | 8192 bytes |        8192 | 0 bytes         |  100.00  _timescaledb_catalog  | continuous_agg_migrate_plan_step | 8192 bytes |        8192 | 0 bytes         |  100.00  _timescaledb_config   | bgw_job                          | 8192 bytes |        8192 | 8192 bytes      |   50.00  _timescaledb_catalog  | metadata                         | 8192 bytes |        8192 | 8192 bytes      |   50.00  public                | currency_info                    | 8192 bytes |        8192 | 0 bytes         |  100.00  _timescaledb_internal | bgw_job_stat_history             | 8192 bytes |        8192 | 8192 bytes      |   50.00  _timescaledb_catalog  | telemetry_event                  | 8192 bytes |        8192 | 0 bytes         |  100.00 (10 rows) 
+
+=== Tablespace Usage ===
+================================================================================
+ Tablespace |  Size  | Location  ------------+--------+----------  pg_default | 94 MB  |   pg_global  | 548 kB |  (2 rows) 
+
+=== WAL Directory Statistics ===
+================================================================================
+ WAL Files | Total WAL Size | Avg File Size |       Oldest WAL       |       Newest WAL        -----------+----------------+---------------+------------------------+------------------------          4 | 64 MB          | 16 MB         | 2026-01-08 15:29:53+00 | 2026-01-08 18:18:46+00 (1 row) 
+
+=== Table Bloat Analysis ===
+================================================================================
+ Schema | Table | Total Size | Dead Tuples | Live Tuples | Dead Tuple % | Est. Bloat Size | last_vacuum | last_autovacuum  --------+-------+------------+-------------+-------------+--------------+-----------------+-------------+----------------- (0 rows) 
+
+=== Storage by Schema ===
+================================================================================
+        Schema         | Tables | Total Size |        Avg Table Size        | Largest Table  -----------------------+--------+------------+------------------------------+---------------  _timescaledb_internal |    957 | 55 MB      | 59 kB                        | 72 kB  _timescaledb_catalog  |     22 | 1456 kB    | 66 kB                        | 584 kB  public                |      4 | 56 kB      | 14 kB                        | 16 kB  _timescaledb_config   |      1 | 48 kB      | 48 kB                        | 48 kB  test                  |      1 | 0 bytes    | 0.00000000000000000000 bytes | 0 bytes  _timescaledb_cache    |      3 | 0 bytes    | 0.00000000000000000000 bytes | 0 bytes (6 rows) 
+
+=== Database Activity Statistics ===
+================================================================================
+ Database | Commits | Rollbacks | Rows Inserted | Rows Updated | Rows Deleted | Total Modifications  ----------+---------+-----------+---------------+--------------+--------------+---------------------  postgres |     400 |        24 |            39 |           12 |           36 |                  87 (1 row) 
+
+
+
+================================================================================
+STORAGE OPTIMIZATION RECOMMENDATIONS
+================================================================================
+
+Analysis: Current Database Size: 77.67 MB
+
+Analysis: GENERAL RECOMMENDATIONS:
+
+1. VACUUM & ANALYZE:
+   - Run VACUUM ANALYZE regularly to reclaim space and update statistics
+   - Enable autovacuum (should be on by default)
+   - Monitor autovacuum activity in pg_stat_user_tables
+
+2. INDEX MANAGEMENT:
+   - Remove unused indexes to save space and improve write performance
+   - Reindex bloated indexes: REINDEX INDEX index_name
+   - Consider partial indexes for filtered queries
+
+3. PARTITIONING:
+   - Consider table partitioning for very large tables (>100GB)
+   - Use time-based partitioning for time-series data
+   - Archive old partitions to reduce active dataset size
+
+4. DATA ARCHIVAL:
+   - Archive historical data to separate tables or databases
+   - Use pg_dump for selective data export
+   - Consider external storage for infrequently accessed data
+
+5. COMPRESSION:
+   - Use TOAST compression for large text/bytea columns
+   - Consider pg_compress extension for additional compression
+   - Evaluate column storage types (MAIN, EXTERNAL, EXTENDED)
+
+
+
+================================================================================
+Analysis: Report saved to: .\storage_reports\storage_analysis_20260108_131843.txt
+================================================================================

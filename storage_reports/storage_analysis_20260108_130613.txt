@@ -1,0 +1,101 @@
+================================================================================
+          PostgreSQL Storage Analysis Report                                    
+================================================================================
+
+Generated: 2026-01-08 13:06:13
+Container: PG-timescale
+Database: postgres
+================================================================================
+
+=== All Database Sizes ===
+================================================================================
+ database | size  | size_bytes | connections  ----------+-------+------------+-------------  postgres | 78 MB |   81442495 |           2 (1 row) 
+
+=== Storage Breakdown by Object Type ===
+================================================================================
+ object_type  | count | total_size | size_bytes  --------------+-------+------------+------------  Tables       |   988 | 56 MB      |   59138048  Indexes      |  1958 | 31 MB      |   32178176  TOAST Tables |    49 | 1216 kB    |    1245184 (3 rows) 
+
+=== Top 30 Largest Tables ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Size, pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) as Table" ignored psql: warning: extra command-line argument "Size, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename) - pg_relation_size(schemaname||'.'||tablename)) as Indexes" ignored psql: warning: extra command-line argument "Size, round(100.0 * pg_total_relation_size(schemaname||'.'||tablename) / NULLIF(sum(pg_total_relation_size(schemaname||'.'||tablename)) OVER (), 0), 2) as %" ignored psql: warning: extra command-line argument "of" ignored psql: warning: extra command-line argument "Total FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema') ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC LIMIT 30;" ignored ERROR:  column "schemaname" does not exist LINE 1: SELECT schemaname as Schema, tablename as Table, pg_size_pre...                ^
+
+=== Table Size with Row Statistics ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Size, n_live_tup as Live" ignored psql: warning: extra command-line argument "Rows, n_dead_tup as Dead" ignored psql: warning: extra command-line argument "Rows, CASE WHEN n_live_tup = 0 THEN 0 ELSE round(pg_total_relation_size(schemaname||'.'||tablename)::numeric / n_live_tup, 2) END as Bytes" ignored psql: warning: extra command-line argument "per" ignored psql: warning: extra command-line argument "Row, last_vacuum, last_autovacuum FROM pg_stat_user_tables WHERE n_live_tup > 0 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC LIMIT 20;" ignored ERROR:  column "schemaname" does not exist LINE 1: SELECT schemaname as Schema, tablename as Table, pg_size_pre...                ^
+
+=== Top 30 Largest Indexes ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Size, idx_scan as Index" ignored psql: warning: extra command-line argument "Scans, idx_tup_read as Tuples" ignored psql: warning: extra command-line argument "Read, idx_tup_fetch as Tuples" ignored psql: warning: extra command-line argument "Fetched, CASE WHEN idx_scan = 0 THEN 'UNUSED' WHEN idx_scan < 100 THEN 'LOW USAGE' ELSE 'ACTIVE' END as Usage" ignored psql: warning: extra command-line argument "Status FROM pg_stat_user_indexes ORDER BY pg_relation_size(indexrelid) DESC LIMIT 30;" ignored ERROR:  column "schemaname" does not exist LINE 1: SELECT schemaname as Schema, tablename as Table, indexname a...                ^
+
+=== Unused Indexes (Candidates for Removal) ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Space, pg_relation_size(indexrelid) as size_bytes, indexdef as Definition FROM pg_stat_user_indexes JOIN pg_indexes USING (schemaname, tablename, indexname) WHERE idx_scan = 0 AND indexrelname NOT LIKE '%_pkey' AND pg_relation_size(indexrelid) > 1048576 ORDER BY pg_relation_size(indexrelid) DESC;" ignored ERROR:  column "schemaname" does not exist LINE 1: SELECT schemaname as Schema, tablename as Table, indexname a...                ^
+
+=== Duplicate Indexes (Potential Waste) ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Space, string_agg(indexrelname, ', ') as Duplicate" ignored psql: warning: extra command-line argument "Indexes, tablename as Table FROM ( SELECT indexrelid::regclass as idx, indrelid::regclass as tablename, (indrelid::text ||E'\n'|| indclass::text ||E'\n'|| indkey::text ||E'\n'|| coalesce(indexprs::text,'')||E'\n' || coalesce(indpred::text,'')) as key FROM pg_index ) sub GROUP BY tablename, key HAVING count(*) > 1 ORDER BY sum(pg_relation_size(idx)) DESC;" ignored ERROR:  column "idx" does not exist LINE 1: SELECT pg_size_pretty(sum(pg_relation_size(idx))::bigint) as...                                                    ^
+
+=== TOAST Table Storage ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Size, pg_total_relation_size(c.reltoastrelid) as toast_bytes, pg_size_pretty(pg_relation_size(c.oid)) as Main" ignored psql: warning: extra command-line argument "Table" ignored psql: warning: extra command-line argument "Size, round(100.0 * pg_total_relation_size(c.reltoastrelid) / NULLIF(pg_relation_size(c.oid) + pg_total_relation_size(c.reltoastrelid), 0), 2) as TOAST" ignored psql: warning: extra command-line argument "% FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.reltoastrelid != 0 AND n.nspname NOT IN ('pg_catalog', 'information_schema') ORDER BY pg_total_relation_size(c.reltoastrelid) DESC LIMIT 20;" ignored ERROR:  missing FROM-clause entry for table "n" LINE 1: SELECT n.nspname as Schema, c.relname as Table, pg_size_pret...                ^
+
+=== Tablespace Usage ===
+================================================================================
+ tablespace |  size  | location  ------------+--------+----------  pg_default | 94 MB  |   pg_global  | 548 kB |  (2 rows) 
+
+=== WAL Directory Statistics ===
+================================================================================
+psql: warning: extra command-line argument "Files, pg_size_pretty(sum(size)) as Total" ignored psql: warning: extra command-line argument "WAL" ignored psql: warning: extra command-line argument "Size, pg_size_pretty(avg(size)) as Avg" ignored psql: warning: extra command-line argument "File" ignored psql: warning: extra command-line argument "Size, min(modification) as Oldest" ignored psql: warning: extra command-line argument "WAL, max(modification) as Newest" ignored psql: warning: extra command-line argument "WAL FROM pg_ls_waldir();" ignored  wal  -----    1 (1 row) 
+
+=== Table Bloat Analysis ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Size, n_dead_tup as Dead" ignored psql: warning: extra command-line argument "Tuples, n_live_tup as Live" ignored psql: warning: extra command-line argument "Tuples, CASE WHEN n_live_tup + n_dead_tup = 0 THEN 0 ELSE round((n_dead_tup * 100.0 / (n_live_tup + n_dead_tup))::numeric, 2) END as Dead" ignored psql: warning: extra command-line argument "Tuple" ignored psql: warning: extra command-line argument "%, pg_size_pretty(n_dead_tup * CASE WHEN n_live_tup = 0 THEN 0 ELSE (pg_relation_size(schemaname||'.'||tablename) / NULLIF(n_live_tup, 0)) END::bigint) as Est." ignored psql: warning: extra command-line argument "Bloat" ignored psql: warning: extra command-line argument "Size, last_vacuum, last_autovacuum FROM pg_stat_user_tables WHERE n_dead_tup > 1000 ORDER BY n_dead_tup DESC LIMIT 20;" ignored ERROR:  column "schemaname" does not exist LINE 1: SELECT schemaname as Schema, tablename as Table, pg_size_pre...                ^
+
+=== Storage by Schema ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Size, pg_size_pretty(avg(pg_total_relation_size(schemaname||'.'||tablename))) as Avg" ignored psql: warning: extra command-line argument "Table" ignored psql: warning: extra command-line argument "Size, pg_size_pretty(max(pg_total_relation_size(schemaname||'.'||tablename))) as Largest" ignored psql: warning: extra command-line argument "Table FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema') GROUP BY schemaname ORDER BY sum(pg_total_relation_size(schemaname||'.'||tablename)) DESC;" ignored ERROR:  column "schemaname" does not exist LINE 1: SELECT schemaname as Schema, count(*) as Tables, pg_size_pre...                ^
+
+=== Database Activity Statistics ===
+================================================================================
+ERROR: psql: warning: extra command-line argument "Inserted, tup_updated as Rows" ignored psql: warning: extra command-line argument "Updated, tup_deleted as Rows" ignored psql: warning: extra command-line argument "Deleted, tup_inserted + tup_updated + tup_deleted as Total" ignored psql: warning: extra command-line argument "Modifications FROM pg_stat_database WHERE datname = 'postgres';" ignored ERROR:  column "datname" does not exist LINE 1: SELECT datname as Database, xact_commit as Commits, xact_rol...                ^
+
+
+
+================================================================================
+STORAGE OPTIMIZATION RECOMMENDATIONS
+================================================================================
+
+Analysis: Current Database Size: 77.67 MB
+
+Analysis: GENERAL RECOMMENDATIONS:
+
+1. VACUUM & ANALYZE:
+   - Run VACUUM ANALYZE regularly to reclaim space and update statistics
+   - Enable autovacuum (should be on by default)
+   - Monitor autovacuum activity in pg_stat_user_tables
+
+2. INDEX MANAGEMENT:
+   - Remove unused indexes to save space and improve write performance
+   - Reindex bloated indexes: REINDEX INDEX index_name
+   - Consider partial indexes for filtered queries
+
+3. PARTITIONING:
+   - Consider table partitioning for very large tables (>100GB)
+   - Use time-based partitioning for time-series data
+   - Archive old partitions to reduce active dataset size
+
+4. DATA ARCHIVAL:
+   - Archive historical data to separate tables or databases
+   - Use pg_dump for selective data export
+   - Consider external storage for infrequently accessed data
+
+5. COMPRESSION:
+   - Use TOAST compression for large text/bytea columns
+   - Consider pg_compress extension for additional compression
+   - Evaluate column storage types (MAIN, EXTERNAL, EXTENDED)
+
+
+
+================================================================================
+Analysis: Report saved to: .\storage_reports\storage_analysis_20260108_130613.txt
+================================================================================
