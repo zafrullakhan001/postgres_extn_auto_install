@@ -16,10 +16,14 @@ postgres/
 │   ├── install_intarray.ps1
 │   ├── install_timescaledb.ps1
 │   ├── install_zombodb.ps1
-│   ├── backup_full.ps1           # Full database backups
-│   ├── backup_incremental.ps1    # Incremental backups (WAL)
-│   ├── restore_full.ps1          # Full database restore
-│   └── restore_pitr.ps1          # Point-in-Time Recovery
+│   ├── backup_full.ps1              # Full database backups
+│   ├── backup_incremental.ps1       # Incremental backups (WAL)
+│   ├── restore_full.ps1             # Full database restore
+│   ├── restore_pitr.ps1             # Point-in-Time Recovery
+│   ├── performance_analysis.ps1     # Performance metrics analysis
+│   ├── health_check.ps1             # Database health assessment
+│   ├── tuning_recommendations.ps1   # Configuration tuning
+│   └── storage_analysis.ps1         # Storage usage analysis
 │
 ├── linux/             # Linux Bash scripts (.sh)
 │   ├── install_pg_stat_statements.sh
@@ -31,15 +35,21 @@ postgres/
 │   ├── install_intarray.sh
 │   ├── install_timescaledb.sh
 │   ├── install_zombodb.sh
-│   ├── backup_full.sh            # Full database backups
-│   ├── backup_incremental.sh     # Incremental backups (WAL)
-│   ├── restore_full.sh           # Full database restore
-│   └── restore_pitr.sh           # Point-in-Time Recovery
+│   ├── backup_full.sh               # Full database backups
+│   ├── backup_incremental.sh        # Incremental backups (WAL)
+│   ├── restore_full.sh              # Full database restore
+│   ├── restore_pitr.sh              # Point-in-Time Recovery
+│   ├── performance_analysis.sh      # Performance metrics analysis
+│   ├── health_check.sh              # Database health assessment
+│   ├── tuning_recommendations.sh    # Configuration tuning
+│   └── storage_analysis.sh          # Storage usage analysis
 │
 ├── backups/           # Backup storage directory
-├── BACKUP_RESTORE_GUIDE.md       # Comprehensive backup documentation
-├── BACKUP_QUICK_REFERENCE.md     # Quick reference for backup commands
-└── UPGRADE_TO_PG18.md            # PostgreSQL upgrade guide
+├── BACKUP_RESTORE_GUIDE.md          # Comprehensive backup documentation
+├── BACKUP_QUICK_REFERENCE.md        # Quick reference for backup commands
+├── PERFORMANCE_MAINTENANCE_GUIDE.md # Performance & maintenance documentation
+├── PERFORMANCE_QUICK_REFERENCE.md   # Quick reference for performance scripts
+└── UPGRADE_TO_PG18.md               # PostgreSQL upgrade guide
 ```
 
 ## 🔄 Backup & Restore
@@ -86,6 +96,78 @@ This repository includes comprehensive backup and restore scripts for PostgreSQL
 | Full Logical | Daily | `backup_full.ps1 -BackupType logical` |
 | Incremental | Hourly | `backup_incremental.ps1 -Action backup` |
 | Physical | Weekly | `backup_full.ps1 -BackupType physical` |
+
+## 📊 Performance & Maintenance
+
+Comprehensive tools for monitoring, analyzing, and optimizing PostgreSQL database performance.
+
+### Available Scripts
+
+| Script | Purpose | Platform |
+|--------|---------|----------|
+| `performance_analysis` | Analyze database performance metrics | Windows/Linux |
+| `health_check` | 15-point health assessment with scoring | Windows/Linux |
+| `tuning_recommendations` | Generate optimized configuration | Windows/Linux |
+| `storage_analysis` | Analyze storage usage and bloat | Windows/Linux |
+
+### Quick Start
+
+**Run health check:**
+```powershell
+# Windows
+.\windows\health_check.ps1
+
+# Linux
+./linux/health_check.sh
+```
+
+**Analyze performance:**
+```powershell
+# Windows
+.\windows\performance_analysis.ps1 -DetailedReport -ExportToCSV
+
+# Linux
+./linux/performance_analysis.sh --detailed --export-csv
+```
+
+**Get tuning recommendations:**
+```powershell
+# Windows
+.\windows\tuning_recommendations.ps1 -WorkloadProfile Large
+
+# Linux
+./linux/tuning_recommendations.sh --workload Large
+```
+
+**Analyze storage:**
+```powershell
+# Windows
+.\windows\storage_analysis.ps1 -DetailedAnalysis
+
+# Linux
+./linux/storage_analysis.sh --detailed
+```
+
+### Key Features
+
+- **Performance Analysis**: Cache hit ratios, slow queries, connection stats, index usage
+- **Health Monitoring**: 15-point health check with 0-100 scoring system
+- **Intelligent Tuning**: Workload-based configuration (Small/Medium/Large profiles)
+- **Storage Management**: Size analysis, bloat detection, cleanup recommendations
+
+### Documentation
+
+- **[Performance & Maintenance Guide](PERFORMANCE_MAINTENANCE_GUIDE.md)** - Complete documentation
+- **[Quick Reference](PERFORMANCE_QUICK_REFERENCE.md)** - Command cheat sheet
+
+### Recommended Monitoring Schedule
+
+| Task | Frequency | Script |
+|------|-----------|--------|
+| Health Check | Daily | `health_check.ps1` |
+| Performance Analysis | Weekly | `performance_analysis.ps1 --detailed` |
+| Storage Analysis | Monthly | `storage_analysis.ps1 --detailed` |
+| Tuning Review | Quarterly | `tuning_recommendations.ps1` |
 
 ## How to Use
 
